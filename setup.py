@@ -35,9 +35,9 @@ import os
 import re
 import shutil
 
-from distutils.core import setup, Extension, Command
-from distutils.command.build import build
-from distutils.command.build_ext import build_ext
+from setuptools import setup, Extension, Command
+from setuptools.command.build_py import build_py
+from setuptools.command.build_ext import build_ext
 
 import cross_bdist_wininst
 
@@ -54,7 +54,7 @@ sources = ["src/module.c", "src/connection.c", "src/cursor.c", "src/cache.c",
 if PYSQLITE_EXPERIMENTAL:
     sources.append("src/backup.c")
 
-include_dirs = []
+include_dirs = [".", "_sqlite3_src"]
 library_dirs = []
 libraries = []
 runtime_library_dirs = []
@@ -111,18 +111,20 @@ class DocBuilder(Command):
         if rc != 0:
             sys.stdout.write("Is sphinx installed? If not, try 'sudo pip sphinx'.\n")
 
-class AmalgamationBuilder(build):
+class AmalgamationBuilder(build_py):
     description = "Build a statically built pysqlite using the amalgamtion."
 
     def __init__(self, *args, **kwargs):
         MyBuildExt.amalgamation = True
-        build.__init__(self, *args, **kwargs)
+        build_py.__init__(self, *args, **kwargs)
 
 class MyBuildExt(build_ext):
-    amalgamation = False
+    amalgamation = True
 
     def _pkgconfig(self, flag, package):
         status, output = commands.getstatusoutput("pkg-config %s %s" % (flag, package))
+        if status == 1:
+            raise OSError()
         return output
 
     def _pkgconfig_include_dirs(self, package):
@@ -195,12 +197,12 @@ def get_setup_args():
             url = "http://github.com/ghaering/pysqlite",
 
             # Description of the modules and packages in the distribution
-            package_dir = {"pysqlite2": "lib"},
-            packages = ["pysqlite2", "pysqlite2.test"],
+            package_dir = {"pysqlite": "lib"},
+            packages = ["pysqlite", "pysqlite.test"],
             scripts=[],
             data_files = data_files,
-
-            ext_modules = [Extension( name="pysqlite2._sqlite",
+            zip_safe=False,
+            ext_modules = [Extension( name="pysqlite._sqlite",
                                       sources=sources,
                                       include_dirs=include_dirs,
                                       library_dirs=library_dirs,

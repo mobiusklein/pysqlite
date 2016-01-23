@@ -415,6 +415,7 @@ PyObject* _pysqlite_query_execute(pysqlite_Cursor* self, int multiple, PyObject*
     PyObject* descriptor = NULL;
     PyObject* second_argument = NULL;
     int allow_8bit_chars;
+    sqlite_int64 lastrowid;
 
     if (!check_cursor(self)) {
         goto error;
@@ -615,7 +616,7 @@ PyObject* _pysqlite_query_execute(pysqlite_Cursor* self, int multiple, PyObject*
 
         if (!multiple) {
             Py_DECREF(self->lastrowid);
-            sqlite_int64 lastrowid;
+/*            sqlite_int64 lastrowid;*/
             Py_BEGIN_ALLOW_THREADS
             lastrowid = sqlite3_last_insert_rowid(self->connection->db);
             Py_END_ALLOW_THREADS
