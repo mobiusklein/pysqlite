@@ -1,7 +1,7 @@
 #-*- coding: ISO-8859-1 -*-
 # setup.py: the distutils script
 #
-# Copyright (C) 2004-2015 Gerhard Häring <gh@ghaering.de>
+# Copyright (C) 2004-2015 Gerhard HÃ¤ring <gh@ghaering.de>
 #
 # This file is part of pysqlite.
 #
@@ -197,12 +197,12 @@ def get_setup_args():
             url = "http://github.com/ghaering/pysqlite",
 
             # Description of the modules and packages in the distribution
-            package_dir = {"pysqlite": "lib"},
-            packages = ["pysqlite", "pysqlite.test"],
+            package_dir = {"pysqlite2": "lib"},
+            packages = ["pysqlite2", "pysqlite2.test"],
             scripts=[],
             data_files = data_files,
             zip_safe=False,
-            ext_modules = [Extension( name="pysqlite._sqlite",
+            ext_modules = [Extension( name="pysqlite2._sqlite",
                                       sources=sources,
                                       include_dirs=include_dirs,
                                       library_dirs=library_dirs,
