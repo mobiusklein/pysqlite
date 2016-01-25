@@ -202,7 +202,7 @@ def get_setup_args():
             scripts=[],
             data_files = data_files,
             zip_safe=False,
-            ext_modules = [Extension( name="pysqlite._sqlite",
+            ext_modules = [Extension( name="pysqlite2._sqlite",
                                       sources=sources,
                                       include_dirs=include_dirs,
                                       library_dirs=library_dirs,
