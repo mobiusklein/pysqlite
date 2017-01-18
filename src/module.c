@@ -279,12 +279,21 @@ static IntConstantPair _int_constants[] = {
     {(char*)NULL, 0}
 };
 
+
+#include <stdio.h>
+#include "sqlite3.h"
+
+void _ErrorLogCallback(void *pArg, int iErrCode, const char *zMsg){
+  fprintf(stderr, "<SQLITE3-LOG> (%d) %s\n", iErrCode, zMsg);
+}
+
+
 PyMODINIT_FUNC init_sqlite(void)
 {
     PyObject *module, *dict;
     PyObject *tmp_obj;
     int i;
-
+    sqlite3_config(SQLITE_CONFIG_LOG, _ErrorLogCallback, NULL);
     module = Py_InitModule("pysqlite2._sqlite", module_methods);
 
     if (!module ||
