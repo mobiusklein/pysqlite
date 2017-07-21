@@ -284,7 +284,10 @@ static IntConstantPair _int_constants[] = {
 #include "sqlite3.h"
 
 void _ErrorLogCallback(void *pArg, int iErrCode, const char *zMsg){
-  fprintf(stderr, "<SQLITE3-LOG> (%d) %s\n", iErrCode, zMsg);
+    if(iErrCode == 17) {
+        return;
+    }
+    fprintf(stderr, "<SQLITE3-LOG> (%d) %s\n", iErrCode, zMsg);
 }
 
 
