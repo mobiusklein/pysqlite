@@ -290,6 +290,9 @@ void _ErrorLogCallback(void *pArg, int iErrCode, const char *zMsg){
     fprintf(stderr, "<SQLITE3-LOG> (%d) %s\n", iErrCode, zMsg);
 }
 
+#ifndef SQLITE_CONFIG_LOG
+#define SQLITE_CONFIG_LOG 16
+#endif
 
 PyMODINIT_FUNC init_sqlite(void)
 {
