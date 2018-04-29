@@ -23,13 +23,16 @@
 
 import sys
 if sys.version_info[0] > 2:
-    print("pysqlite is not supported on Python 3. When using Python 3, use the sqlite3 module from the standard library.")
-    sys.exit(1)
+    # print("pysqlite is not supported on Python 3. When using Python 3, use the sqlite3 module from the standard library.")
+    # sys.exit(1)
+    pyversion = 3
 elif sys.version_info[:2] != (2, 7):
     print("Only Python 2.7 is supported.")
     sys.exit(1)
+else:
+    pyversion = 2
 
-import commands
+import subprocess
 import glob
 import os
 import re
@@ -41,15 +44,32 @@ from setuptools.command.build_ext import build_ext
 
 import cross_bdist_wininst
 
+
+def getstatusoutput(cmd):
+    proc = subprocess.Popen(cmd, shell=1, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    stdout, stderr = proc.communicate()
+    status = proc.returncode
+    return status, stdout
+
 # If you need to change anything, it should be enough to change setup.cfg.
 
 sqlite = "sqlite"
 
 PYSQLITE_EXPERIMENTAL = False
 
-sources = ["src/module.c", "src/connection.c", "src/cursor.c", "src/cache.c",
-           "src/microprotocols.c", "src/prepare_protocol.c", "src/statement.c",
-           "src/util.c", "src/row.c"]
+if pyversion == 2:
+    srcdir = "src"
+elif pyversion == 3:
+    srcdir = "src3"
+else:
+    raise ValueError("Unknown Python Version")
+
+sources = [
+    "{}/module.c".format(srcdir), "{}/connection.c".format(srcdir),
+    "{}/cursor.c".format(srcdir), "{}/cache.c".format(srcdir),
+    "{}/microprotocols.c".format(srcdir), "{}/prepare_protocol.c".format(srcdir),
+    "{}/statement.c".format(srcdir),
+    "{}/util.c".format(srcdir), "{}/row.c".format(srcdir)]
 
 if PYSQLITE_EXPERIMENTAL:
     sources.append("src/backup.c")
@@ -122,18 +142,18 @@ class MyBuildExt(build_ext):
     amalgamation = True
 
     def _pkgconfig(self, flag, package):
-        status, output = commands.getstatusoutput("pkg-config %s %s" % (flag, package))
+        status, output = getstatusoutput("pkg-config %s %s" % (flag, package))
         if status == 1:
             raise OSError()
         return output
 
     def _pkgconfig_include_dirs(self, package):
-        return [x.strip() for x in 
+        return [x.strip() for x in
                 self._pkgconfig("--cflags-only-I",
                                 package).replace("-I", " ").split()]
 
     def _pkgconfig_library_dirs(self, package):
-        return [x.strip() for x in 
+        return [x.strip() for x in
                 self._pkgconfig("--libs-only-L",
                                 package).replace("-L", " ").split()]
 

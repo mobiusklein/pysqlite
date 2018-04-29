@@ -83,9 +83,9 @@ class bdist_wininst (Command):
         if not self.skip_build and self.distribution.has_ext_modules():
             short_version = get_python_version()
             if self.target_version and self.target_version != short_version:
-                raise DistutilsOptionError, \
+                raise DistutilsOptionError(
                       "target version can only be %s, or the '--skip_build'" \
-                      " option must be specified" % (short_version,)
+                      " option must be specified" % (short_version,))
             self.target_version = short_version
 
         self.set_undefined_options('bdist', ('dist_dir', 'dist_dir'))
@@ -95,9 +95,9 @@ class bdist_wininst (Command):
                 if self.install_script == os.path.basename(script):
                     break
             else:
-                raise DistutilsOptionError, \
+                raise DistutilsOptionError(
                       "install_script '%s' not found in scripts" % \
-                      self.install_script
+                      self.install_script)
     # finalize_options()
 
 

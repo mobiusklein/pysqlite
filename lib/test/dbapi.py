@@ -379,8 +379,8 @@ class CursorTests(unittest.TestCase):
             self.fail("should have raised a TypeError")
         except TypeError:
             return
-        except Exception, e:
-            print "raised", e.__class__
+        except Exception as e:
+            print("raised", e.__class__)
             self.fail("raised wrong exception.")
 
     def CheckFetchIter(self):
