@@ -164,6 +164,8 @@ class MyBuildExt(build_ext):
                     ("SQLITE_ENABLE_FTS3", "1"),
                     ("SQLITE_ENABLE_FTS3_PARENTHESIS", "1"),
                     ("SQLITE_ENABLE_FTS4", "1"),
+                    ("SQLITE_ENABLE_FTS5", "1"),
+                    ("SQLITE_ENABLE_JSON1", "1"),
                     ("SQLITE_ENABLE_RTREE", "1")]
             ext.sources.append("sqlite3.c")
         try:
