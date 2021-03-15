@@ -1,7 +1,7 @@
 #-*- coding: ISO-8859-1 -*-
 # pysqlite2/test/transactions.py: tests transactions
 #
-# Copyright (C) 2005-2015 Gerhard Häring <gh@ghaering.de>
+# Copyright (C) 2005-2015 Gerhard Hï¿½ring <gh@ghaering.de>
 #
 # This file is part of pysqlite.
 #
@@ -24,6 +24,12 @@
 import os
 import unittest
 import pysqlite2.dbapi2 as sqlite
+import sys
+
+if sys.version_info.major == 3:
+    unicode = str
+    buffer = memoryview
+    long = int
 
 def get_db_path():
     return "sqlite_testdb"

@@ -2,6 +2,12 @@
 
 import unittest
 from pysqlite2 import dbapi2 as sqlite
+import sys
+if sys.version_info.major == 3:
+    unicode = str
+    buffer = memoryview
+    long = int
+    xrange = range
 
 class DumpTests(unittest.TestCase):
     def setUp(self):

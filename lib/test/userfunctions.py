@@ -2,7 +2,7 @@
 # pysqlite2/test/userfunctions.py: tests for user-defined functions and
 #                                  aggregates.
 #
-# Copyright (C) 2005-2015 Gerhard Häring <gh@ghaering.de>
+# Copyright (C) 2005-2015 Gerhard Hï¿½ring <gh@ghaering.de>
 #
 # This file is part of pysqlite.
 #
@@ -24,6 +24,21 @@
 
 import unittest
 import pysqlite2.dbapi2 as sqlite
+import sys
+
+if sys.version_info.major == 3:
+    unicode = str
+    buffer = bytes
+    long = int
+
+
+    def _ensurebytes(text):
+        if isinstance(text, str):
+            return text.encode('utf8')
+        return text
+else:
+    def _ensurebytes(text):
+        return text
 
 def func_returntext():
     return "foo"
@@ -36,7 +51,7 @@ def func_returnfloat():
 def func_returnnull():
     return None
 def func_returnblob():
-    return buffer("blob")
+    return buffer(b"blob")
 def func_returnlonglong():
     return 1<<31
 def func_raiseexception():
@@ -203,7 +218,7 @@ class FunctionTests(unittest.TestCase):
         cur.execute("select returnblob()")
         val = cur.fetchone()[0]
         self.assertEqual(type(val), buffer)
-        self.assertEqual(val, buffer("blob"))
+        self.assertEqual(val, buffer(_ensurebytes("blob")))
 
     def CheckFuncReturnLongLong(self):
         cur = self.con.cursor()
@@ -246,7 +261,7 @@ class FunctionTests(unittest.TestCase):
 
     def CheckParamBlob(self):
         cur = self.con.cursor()
-        cur.execute("select isblob(?)", (buffer("blob"),))
+        cur.execute("select isblob(?)", (buffer(_ensurebytes("blob")),))
         val = cur.fetchone()[0]
         self.assertEqual(val, 1)
 
@@ -270,7 +285,7 @@ class AggregateTests(unittest.TestCase):
                 )
             """)
         cur.execute("insert into test(t, i, f, n, b) values (?, ?, ?, ?, ?)",
-            ("foo", 5, 3.14, None, buffer("blob"),))
+            ("foo", 5, 3.14, None, buffer(_ensurebytes("blob")),))
 
         self.con.create_aggregate("nostep", 1, AggrNoStep)
         self.con.create_aggregate("nofinalize", 1, AggrNoFinalize)
@@ -298,7 +313,7 @@ class AggregateTests(unittest.TestCase):
             cur.execute("select nostep(t) from test")
             self.fail("should have raised an AttributeError")
         except AttributeError as e:
-            self.assertEqual(e.args[0], "AggrNoStep instance has no attribute 'step'")
+            self.assertTrue(e.args[0].endswith("has no attribute 'step'"))
 
     def CheckAggrNoFinalize(self):
         cur = self.con.cursor()
@@ -362,7 +377,7 @@ class AggregateTests(unittest.TestCase):
 
     def CheckAggrCheckParamBlob(self):
         cur = self.con.cursor()
-        cur.execute("select checkType('blob', ?)", (buffer("blob"),))
+        cur.execute("select checkType('blob', ?)", (buffer(_ensurebytes("blob")),))
         val = cur.fetchone()[0]
         self.assertEqual(val, 1)
 

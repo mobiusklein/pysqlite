@@ -1,7 +1,7 @@
 #-*- coding: ISO-8859-1 -*-
 # pysqlite2/test/hooks.py: tests for various SQLite-specific hooks
 #
-# Copyright (C) 2006-2015 Gerhard Häring <gh@ghaering.de>
+# Copyright (C) 2006-2015 Gerhard Hï¿½ring <gh@ghaering.de>
 #
 # This file is part of pysqlite.
 #
@@ -23,6 +23,24 @@
 
 import unittest
 import pysqlite2.dbapi2 as sqlite
+import sys
+
+if sys.version_info.major == 3:
+    unicode = str
+    buffer = memoryview
+    long = int
+
+try:
+    cmp
+except NameError:
+    def cmp(a, b):
+        if a == b:
+            return 0
+        elif a < b:
+            return -1
+        else:
+            return 1
+
 
 class CollationTests(unittest.TestCase):
     def setUp(self):
@@ -42,7 +60,7 @@ class CollationTests(unittest.TestCase):
     def CheckCreateCollationNotAscii(self):
         con = sqlite.connect(":memory:")
         try:
-            con.create_collation("collä", cmp)
+            con.create_collation("collï¿½", cmp)
             self.fail("should have raised a ProgrammingError")
         except sqlite.ProgrammingError as e:
             pass
@@ -170,24 +188,25 @@ class ProgressTests(unittest.TestCase):
         self.assertEqual(len(action), 0, "progress handler was not cleared")
 
 class LimitTests(unittest.TestCase):
-    def CheckGetLimit(self):
-        """
-        Test that the get limit method return something useful.
-        """
-        con = sqlite.connect(":memory:")
-        val = con.get_limit(sqlite.SQLITE_LIMIT_VARIABLE_NUMBER)
-        self.assertTrue(val > 0)
+    if sys.version_info.major == 2:
+        def CheckGetLimit(self):
+            """
+            Test that the get limit method return something useful.
+            """
+            con = sqlite.connect(":memory:")
+            val = con.get_limit(sqlite.SQLITE_LIMIT_VARIABLE_NUMBER)
+            self.assertTrue(val > 0)
 
-    def CheckSetLimit(self):
-        """
-        Test that the set limit method actally changes limits.
-        """
-        con = sqlite.connect(":memory:")
-        oldval = con.get_limit(sqlite.SQLITE_LIMIT_VARIABLE_NUMBER)
-        con.set_limit(sqlite.SQLITE_LIMIT_VARIABLE_NUMBER, oldval - 1)
-        newval = con.get_limit(sqlite.SQLITE_LIMIT_VARIABLE_NUMBER)
+        def CheckSetLimit(self):
+            """
+            Test that the set limit method actally changes limits.
+            """
+            con = sqlite.connect(":memory:")
+            oldval = con.get_limit(sqlite.SQLITE_LIMIT_VARIABLE_NUMBER)
+            con.set_limit(sqlite.SQLITE_LIMIT_VARIABLE_NUMBER, oldval - 1)
+            newval = con.get_limit(sqlite.SQLITE_LIMIT_VARIABLE_NUMBER)
 
-        self.assertEqual(newval, oldval - 1)
+            self.assertEqual(newval, oldval - 1)
 
 def suite():
     collation_suite = unittest.makeSuite(CollationTests, "Check")

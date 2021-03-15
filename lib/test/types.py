@@ -1,7 +1,7 @@
 #-*- coding: ISO-8859-1 -*-
 # pysqlite2/test/types.py: tests for type conversion and detection
 #
-# Copyright (C) 2005-2015 Gerhard Häring <gh@ghaering.de>
+# Copyright (C) 2005-2015 Gerhard Hï¿½ring <gh@ghaering.de>
 #
 # This file is part of pysqlite.
 #
@@ -28,7 +28,12 @@ try:
     import zlib
 except:
     zlib = None
+import sys
 
+if sys.version_info.major == 3:
+    unicode = str
+    buffer = memoryview
+    long = int
 
 class SqliteTypeTests(unittest.TestCase):
     def setUp(self):
@@ -41,10 +46,10 @@ class SqliteTypeTests(unittest.TestCase):
         self.con.close()
 
     def CheckString(self):
-        self.cur.execute("insert into test(s) values (?)", (u"Österreich",))
+        self.cur.execute("insert into test(s) values (?)", (u"ï¿½sterreich",))
         self.cur.execute("select s from test")
         row = self.cur.fetchone()
-        self.assertEqual(row[0], u"Österreich")
+        self.assertEqual(row[0], u"ï¿½sterreich")
 
     def CheckSmallInt(self):
         self.cur.execute("insert into test(i) values (?)", (42,))
@@ -67,43 +72,45 @@ class SqliteTypeTests(unittest.TestCase):
         self.assertEqual(row[0], val)
 
     def CheckBlob(self):
-        val = buffer("Guglhupf")
+        val = buffer(b"Guglhupf")
         self.cur.execute("insert into test(b) values (?)", (val,))
         self.cur.execute("select b from test")
         row = self.cur.fetchone()
         self.assertEqual(row[0], val)
 
     def CheckUnicodeExecute(self):
-        self.cur.execute(u"select 'Österreich'")
+        self.cur.execute(u"select 'ï¿½sterreich'")
         row = self.cur.fetchone()
-        self.assertEqual(row[0], u"Österreich")
+        self.assertEqual(row[0], u"ï¿½sterreich")
 
-    def CheckNonUtf8_Default(self):
-        try:
-            self.cur.execute("select ?", (chr(150),))
-            self.fail("should have raised a ProgrammingError")
-        except sqlite.ProgrammingError:
-            pass
+    if sys.version_info.major == 2:
 
-    def CheckNonUtf8_TextFactoryString(self):
-        orig_text_factory = self.con.text_factory
-        try:
-            self.con.text_factory = str
-            self.cur.execute("select ?", (chr(150),))
-        finally:
-            self.con.text_factory = orig_text_factory
-
-    def CheckNonUtf8_TextFactoryOptimizedUnicode(self):
-        orig_text_factory = self.con.text_factory
-        try:
+        def CheckNonUtf8_Default(self):
             try:
-                self.con.text_factory = sqlite.OptimizedUnicode
                 self.cur.execute("select ?", (chr(150),))
                 self.fail("should have raised a ProgrammingError")
             except sqlite.ProgrammingError:
                 pass
-        finally:
-            self.con.text_factory = orig_text_factory
+
+        def CheckNonUtf8_TextFactoryString(self):
+            orig_text_factory = self.con.text_factory
+            try:
+                self.con.text_factory = str
+                self.cur.execute("select ?", (chr(150),))
+            finally:
+                self.con.text_factory = orig_text_factory
+
+        def CheckNonUtf8_TextFactoryOptimizedUnicode(self):
+            orig_text_factory = self.con.text_factory
+            try:
+                try:
+                    self.con.text_factory = sqlite.OptimizedUnicode
+                    self.cur.execute("select ?", (chr(150),))
+                    self.fail("should have raised a ProgrammingError")
+                except sqlite.ProgrammingError:
+                    pass
+            finally:
+                self.con.text_factory = orig_text_factory
 
     def CheckBinaryString(self):
         bin_string = u"foo\x00bar"
@@ -118,11 +125,19 @@ class SqliteTypeTests(unittest.TestCase):
 class DeclTypesTests(unittest.TestCase):
     class Foo:
         def __init__(self, _val):
-            self.val = _val
+            self.val = sqlite._ensuretext(_val)
+
+        def __eq__(self, other):
+            if not isinstance(other, DeclTypesTests.Foo):
+                raise ValueError()
+            return self.val == other.val
+
+        def __ne__(self, other):
+            return not self == other
 
         def __cmp__(self, other):
             if not isinstance(other, DeclTypesTests.Foo):
-                raise ValueError
+                raise ValueError()
             if self.val == other.val:
                 return 0
             else:
@@ -135,6 +150,9 @@ class DeclTypesTests(unittest.TestCase):
                 return None
 
         def __str__(self):
+            return "<%s>" % self.val
+
+        def __repr__(self):
             return "<%s>" % self.val
 
     def setUp(self):
@@ -255,7 +273,7 @@ class DeclTypesTests(unittest.TestCase):
 
     def CheckBlob(self):
         # default
-        val = buffer("Guglhupf")
+        val = buffer(b"Guglhupf")
         self.cur.execute("insert into test(bin) values (?)", (val,))
         self.cur.execute("select bin from test")
         row = self.cur.fetchone()
@@ -281,7 +299,7 @@ class ColNamesTests(unittest.TestCase):
         self.cur.execute("create table test(x foo)")
 
         sqlite.converters["FOO"] = lambda x: "[%s]" % x
-        sqlite.converters["BAR"] = lambda x: "<%s>" % x
+        sqlite.converters["BAR"] = lambda x: "<%s>" % sqlite._ensuretext(x)
         sqlite.converters["EXC"] = lambda x: 5 // 0
         sqlite.converters["B1B1"] = lambda x: "MARKER"
 
@@ -370,7 +388,7 @@ class BinaryConverterTests(unittest.TestCase):
         self.con.close()
 
     def CheckBinaryInputForConverter(self):
-        testdata = "abcdefg" * 10
+        testdata = b"abcdefg" * 10
         result = self.con.execute('select ? as "x [bin]"', (buffer(zlib.compress(testdata)),)).fetchone()[0]
         self.assertEqual(testdata, result)
 

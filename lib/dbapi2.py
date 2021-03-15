@@ -1,7 +1,7 @@
 #-*- coding: ISO-8859-1 -*-
 # pysqlite2/dbapi2.py: the DB-API 2.0 interface
 #
-# Copyright (C) 2004-2015 Gerhard Häring <gh@ghaering.de>
+# Copyright (C) 2004-2015 Gerhard Hï¿½ring <gh@ghaering.de>
 #
 # This file is part of pysqlite.
 #
@@ -57,7 +57,14 @@ except NameError:
     Binary = memoryview
 collections.Sequence.register(Row)
 
+def _ensuretext(val):
+    if isinstance(val, bytes):
+        return val.decode('utf8')
+    return val
+
 def register_adapters_and_converters():
+
+
     def adapt_date(val):
         return val.isoformat()
 
@@ -65,15 +72,16 @@ def register_adapters_and_converters():
         return val.isoformat(" ")
 
     def convert_date(val):
-        return datetime.date(*map(int, val.split("-")))
+        return datetime.date(*map(int, _ensuretext(val).split("-")))
 
     def convert_timestamp(val):
+        val = _ensuretext(val)
         datepart, timepart = val.split(" ")
         year, month, day = map(int, datepart.split("-"))
         timepart_full = timepart.split(".")
         hours, minutes, seconds = map(int, timepart_full[0].split(":"))
         if len(timepart_full) == 2:
-            microseconds = int('{:0<6.6}'.format(timepart_full[1].decode()))
+            microseconds = int('{:0<6.6}'.format(timepart_full[1]))
         else:
             microseconds = 0
 

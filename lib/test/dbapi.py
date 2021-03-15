@@ -1,7 +1,7 @@
 #-*- coding: ISO-8859-1 -*-
 # pysqlite2/test/dbapi.py: tests for DB-API compliance
 #
-# Copyright (C) 2004-2015 Gerhard Häring <gh@ghaering.de>
+# Copyright (C) 2004-2015 Gerhard Hï¿½ring <gh@ghaering.de>
 #
 # This file is part of pysqlite.
 #
@@ -27,6 +27,13 @@ try:
 except ImportError:
     threading = None
 import pysqlite2.dbapi2 as sqlite
+import sys
+if sys.version_info.major == 3:
+    unicode = str
+    buffer = memoryview
+    long = int
+    xrange = range
+    StandardError = Exception
 
 class ModuleTests(unittest.TestCase):
     def CheckAPILevel(self):
@@ -140,10 +147,11 @@ class ConnectionTests(unittest.TestCase):
         self.assertEqual(self.cx.ProgrammingError, sqlite.ProgrammingError)
         self.assertEqual(self.cx.NotSupportedError, sqlite.NotSupportedError)
 
-    def CheckOpenFlags(self):
-        con = sqlite.connect(":memory:", flags=sqlite.SQLITE_OPEN_READONLY)
-        # exception will be raised because of readonly database
-        self.assertRaises(sqlite.OperationalError, con.execute, "create table test(foo)")
+    if hasattr(sqlite, "SQLITE_OPEN_READONLY"):
+        def CheckOpenFlags(self):
+            con = sqlite.connect(":memory:", flags=sqlite.SQLITE_OPEN_READONLY)
+            # exception will be raised because of readonly database
+            self.assertRaises(sqlite.OperationalError, con.execute, "create table test(foo)")
 
 class CursorTests(unittest.TestCase):
     def setUp(self):
@@ -345,6 +353,8 @@ class CursorTests(unittest.TestCase):
                 else:
                     self.value += 1
                     return (self.value,)
+
+            __next__ = next
 
         self.cu.executemany("insert into test(income) values (?)", MyIter())
 
@@ -653,7 +663,7 @@ class ConstructorTests(unittest.TestCase):
         ts = sqlite.TimestampFromTicks(42)
 
     def CheckBinary(self):
-        b = sqlite.Binary(chr(0) + "'")
+        b = sqlite.Binary(chr(0).encode('utf8') + b"'")
 
 class ExtensionTests(unittest.TestCase):
     def CheckScriptStringSql(self):

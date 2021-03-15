@@ -1,7 +1,7 @@
 #-*- coding: ISO-8859-1 -*-
 # pysqlite2/test/regression.py: pysqlite regression tests
 #
-# Copyright (C) 2006-2015 Gerhard Häring <gh@ghaering.de>
+# Copyright (C) 2006-2015 Gerhard Hï¿½ring <gh@ghaering.de>
 #
 # This file is part of pysqlite.
 #
@@ -24,6 +24,13 @@
 import datetime
 import unittest
 import pysqlite2.dbapi2 as sqlite
+import sys
+
+if sys.version_info.major == 3:
+    unicode = str
+    buffer = memoryview
+    long = int
+    xrange = range
 
 class RegressionTests(unittest.TestCase):
     def setUp(self):
@@ -147,13 +154,14 @@ class RegressionTests(unittest.TestCase):
         """
         self.assertRaises(TypeError, sqlite.register_adapter, {}, None)
 
-    def CheckSetIsolationLevel(self):
-        """
-        See issue 3312.
-        """
-        con = sqlite.connect(":memory:")
-        self.assertRaises(UnicodeEncodeError, setattr, con,
-                          "isolation_level", u"\xe9")
+    if sys.version_info.major == 2:
+        def CheckSetIsolationLevel(self):
+            """
+            See issue 3312.
+            """
+            con = sqlite.connect(":memory:")
+            self.assertRaises(UnicodeEncodeError, setattr, con,
+                              "isolation_level", u"\xe9")
 
     def CheckCursorConstructorCallCheck(self):
         """
