@@ -35,6 +35,7 @@ else:
 import subprocess
 import glob
 import os
+import io
 import re
 import shutil
 
@@ -186,8 +187,12 @@ def get_setup_args():
     PYSQLITE_VERSION = None
 
     version_re = re.compile('#define PYSQLITE_VERSION "(.*)"')
-    f = open(os.path.join("src", "module.h"))
+    f = io.open(os.path.join("src", "module.h"), 'rb')
     for line in f:
+        try:
+            line = line.decode('utf8')
+        except UnicodeDecodeError:
+            continue
         match = version_re.match(line)
         if match:
             PYSQLITE_VERSION = match.groups()[0]
