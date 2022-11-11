@@ -92,7 +92,7 @@ exposes the unique features of SQLite."""
 if sys.platform != "win32":
     define_macros.append(('MODULE_NAME', '"pysqlite2.dbapi2"'))
 else:
-    define_macros.append(('MODULE_NAME', '\\"pysqlite2.dbapi2\\"'))
+    define_macros.append(('MODULE_NAME', '\"pysqlite2.dbapi2\"'))
 
 class TestRunner(Command):
     description = "Runs the unit tests"

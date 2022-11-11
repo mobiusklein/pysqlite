@@ -9,4 +9,4 @@ for file_ in file_list.json():
     with open(name, 'w') as fh:
         resp = requests.get(dl_url)
         resp.raise_for_status()
-        fh.write(resp.text.encode('utf-8'))
+        fh.write(resp.text)
